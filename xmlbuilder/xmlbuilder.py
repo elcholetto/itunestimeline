@@ -10,13 +10,13 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Foobar is distributed in the hope that it will be useful,
+# iTunes Timeline is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+# along with iTunes Timeline.  If not, see <http://www.gnu.org/licenses/>.
 
 import getpass
 import os.path, sys, inspect
@@ -58,29 +58,29 @@ def timetoisoformat( time ):
 def setSongMetadata( songNode, song ):
     if song.name is not None:
         songNode.set( "name", song.name )
-        
+
     if song.artist is not None:
         songNode.set( "artist", song.artist )
-    
+
     if song.album is not None:
         songNode.set( "album", song.album )
-    
+
     if song.year is not None:
         songNode.set( "year", str(song.year) )
-    
+
     if song.date_added is not None:
         songNode.set( "added", timetoisoformat( song.date_added ) )
-    
+
     if song.play_count is not None:
         songNode.set( "playcount", str(song.play_count) )
 
 def getSongNode( timelineDB, id ):
     songs = timelineDB.findall(".//track[@id='" + str(id) + "']")
     nbSongs = len( songs )
-    
+
     if nbSongs > 1:
         print "WARNING: more than one songs for id " + str(id)
-    
+
     if nbSongs > 0:
         return songs[0]
     else:
@@ -88,23 +88,23 @@ def getSongNode( timelineDB, id ):
 
 def getNodeText( node ):
     return node.text
-        
+
 def updatedb( itunesLib, timelineDB ):
     print "building iTunes Timeline db (this may take a while)..."
     for id, song in itunesLib.songs.items():
         songNode = getSongNode( timelineDB, song.persistentid )
-        
+
         # create node for new song
         if songNode is None:
             songNode = etree.SubElement( timelineDB, "track" )
             songNode.set( "id", str( song.persistentid ) )
-        
+
         # update metadata
         setSongMetadata( songNode, song )
-        
+
         # fetch all playedon timestamp
         lastPlayedList = songNode.findall( ".//playedon" )
-        
+
         if lastPlayedList is not None and len(lastPlayedList) > 0:
             lastPlayed = sorted( lastPlayedList, key=getNodeText, reverse=True )[0]
             if lastPlayed.text < timetoisoformat( song.lastplayed ):
@@ -122,7 +122,7 @@ def updatedb( itunesLib, timelineDB ):
 
     # saving modification
     tree = etree.ElementTree( timelineDB )
-    tree.write( "timelinedb.xml" ) #, pretty_print=True ) 
+    tree.write( "timelinedb.xml" ) #, pretty_print=True )
 
 ###############################################################################
 # main of some sort
@@ -148,11 +148,8 @@ if os.path.isfile( "timelinedb.xml" ):
     filehandler.close()
 else:
     timelineDB = etree.Element( "timeline" )
-    
+
 updatedb( itunesLib, timelineDB )
 
 print "done."
-sys.exit( 0 ) 
-    
-    
-    
+sys.exit( 0 )
